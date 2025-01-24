@@ -1,6 +1,6 @@
 /* ################################# fetch #################################  */
 function loadLoadingPage(){
-  fetch('./include/loading.html')
+  fetch('/include/loading.html')
   .then(response => response.text())
   .then(data=>{
     document.querySelector('.loading-include').innerHTML = data;
