@@ -432,20 +432,44 @@
 }
 
 .project-link-box{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
   margin-top: auto;
+  width: 100%;
 }
 .project-link-box > a{
-  display: inline-block;
-  font-size: 30px;
-  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 31%;
+  height: 120%;
+  border: 1px solid rgba(198, 213, 226, .1);
+  background-color: rgba(198, 213, 226, .3);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 25px;
+  color: var(--darkblue);
   transition: .3s ease-in-out;
 }
 .project-link-box > a:hover{
-  color: var(--darkblue);
+  background-color: var(--white);
+  border-color: var(--darkblue);
+  color: var(--blue);
+}
+.project-link-box > a i{
+  margin: auto 0;
+}
+
+.project-link-box span{
+  margin-left: 10px;
+  font-size: 20px;
 }
 
 .work-img{
   height: 100%;
+  position: relative;
 }
 .work-img img{
   height: 100%;
@@ -455,6 +479,18 @@
 }
 .work-img img:hover{
   filter: grayscale(0);
+}
+
+.work-img .click{
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translateX(-50%);
+}
+.click p{
+  font-family: var(--font-point-bold);
+  color: var(--white);
+  position: relative;
 }
 
 /* ################################# epilogue ################################# */
