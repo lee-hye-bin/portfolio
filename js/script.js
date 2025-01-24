@@ -21,29 +21,18 @@ function loadIntro(){
   })
   .catch(error => console.error('Error loading header:', error));
 }
-loadIntro();
 
 function loadAboutIntro(){
   fetch('../include/about-intro.html')
   .then(response => response.text())
   .then(data=>{
     document.querySelector('.about-intro-include').innerHTML = data;
-
-    const swiper = new Swiper('.swiper-container', {
-      direction: 'horizontal',
-      slidesPerView: 1,
-      loop: false,
-      mousewheel: true,
-    });
-
-    console.log('Works Swiper 초기화 완료');
   })
   .then((data)=>{
     aboutIntroHandler();
   })
   .catch(error => console.error('Error loading header:', error));
 }
-loadAboutIntro();
 
 function loadAbout(){
   fetch('../include/about.html')
@@ -53,7 +42,6 @@ function loadAbout(){
   })
   .catch(error => console.error('Error loading header:', error));
 }
-loadAbout();
 
 function loadSkill(){
   fetch('../include/skill.html')
@@ -66,17 +54,30 @@ function loadSkill(){
   })
   .catch(error => console.error('Error loading header:', error));
 }
-loadSkill();
 
 function loadWorks(){
   fetch('../include/works.html')
   .then(response => response.text())
   .then(data=>{
     document.querySelector('.works-include').innerHTML = data;
+
+    const swiper = new Swiper('.swiper-container', {
+      direction: 'horizontal',
+      slidesPerView: 1,
+      loop: false,
+      mousewheel: {
+        forceToAxis: true,
+        releaseOnEdges: true,
+      },
+      on: {
+        init: () => {
+          console.log('Swiper 초기화 완료');
+        },
+      },
+    });
   })
   .catch(error => console.error('Error loading header:', error));
 }
-loadWorks();
 
 function loadEpilogue(){
   fetch('../include/epilogue.html')
@@ -88,7 +89,6 @@ function loadEpilogue(){
   })
   .catch(error => console.error('Error loading header:', error));
 }
-loadEpilogue();
 
 /* ################################# scroll 이벤트 ################################# */
 const contentArea = document.querySelector('.content');
@@ -100,16 +100,6 @@ contentArea.addEventListener('scroll', ()=>{
   const pathArrow = document.getElementById('scroll-arrow');
 
   console.log('현재 scrollY: ', scrollY);
-
-  // header nav change
-  if(scrollY >= 1400){
-    contact.classList.add('hidden');
-    changeMenu.classList.add('change');
-  }
-  else if(scrollY < 1400){
-    contact.classList.remove('hidden');
-    changeMenu.classList.remove('change');
-  }
 
   let lastScrollY = 0; //스크롤 값
   const scrollingDown = scrollY > lastScrollY; // 스크롤 방향 감지
@@ -133,10 +123,6 @@ contentArea.addEventListener('scroll', ()=>{
 
   // intro section scroll arrow
   scrollY >= 700 ? pathArrow.style.opacity = 0 : pathArrow.style.opacity = 1;
-
-  if(scrollY === 700){
-
-  }
 });
 
 /* ################################# function ################################# */
@@ -163,10 +149,27 @@ function bearShow(){
 }
 
 //색깔 초기화 함수
-function resetLinkStyles() {
+function resetLinkStyles(){
   document.getElementById('about-link').style.color = 'var(--veige)';
   document.getElementById('skill-link').style.color = 'var(--veige)';
   document.getElementById('works-link').style.color = 'var(--veige)';
+}
+
+// show contact window
+function contactWindowShow(){
+  const contactBtn = document.getElementById('contact-link');
+  const ContactWindow = document.getElementById('contact');
+  const closeBtn = document.querySelector('.close-bear');
+  const contactBg = document.querySelector('.contact-bg');
+
+  contactBtn.addEventListener('click', ()=>{
+    ContactWindow.classList.add('visible');
+    contactBg.classList.add('visible');
+  });
+  closeBtn.addEventListener('click', ()=>{
+    ContactWindow.classList.remove('visible');
+    contactBg.classList.remove('visible');
+  })
 }
 
 // intro typing
@@ -207,121 +210,96 @@ const drawPath = () => {
   }, 100); //타이핑 이후 패스 그림
 };
 
-function aboutIntroHandler() {
+function aboutIntroHandler(){
   const contentArea = document.querySelector('.content'); // 스크롤 컨테이너
   const aboutIntroSection = document.querySelector('.about-intro-include'); // 스크롤 잠금 대상
   const aboutIntroList = document.getElementById('about-intro-list'); // 텍스트가 추가될 ul
   const introTexts = [
-    '스크롤하면 보일 소개 문장1',
-    '스크롤하면 보일 소개 문장2',
-    '스크롤하면 보일 소개 문장3',
-    '<h2>신입 프론트엔드 개발자</h2>',
-    '이혜빈입니다'
+    '<h2>프론트엔드 개발자 이혜빈입니다.</h2>',
+    '새로운 도전을 두려워하지 않고',
+    '기초를 차근차근 다지며',
+    '꾸준히 성장 중입니다.',
+    '스크롤을 내려서 다음 내용을 확인하세요!',
   ];
 
   let currentTextIndex = 0; // 현재 출력 중인 문장의 인덱스
   let isScrollingAllowed = false; // 스크롤 활성화 여부
-  let extraScrollCount = 0; //마지막 문장 출력 후 추가 스크롤 카운터 변수
-  let allTextsHidden = false; // 모든 문장이 삭제된 상태를 관리
+  let isScrollUnlocked = false; // 한 번 스크롤이 해제되었는지 확인하는 상태
 
-  // 초기 상태: 텍스트 추가 및 숨기기
-  introTexts.forEach((text, index) => {
-    const listItem = document.createElement('li');
-    listItem.style.opacity = '0'; // 처음에 숨김
-    listItem.dataset.index = index; // 인덱스 저장 (삭제/출력 추적용)
-    if (text.startsWith('<h2>')) {
-      listItem.innerHTML = text; // HTML 태그 포함된 텍스트 처리
-    } else {
-      const paragraph = document.createElement('p');
-      paragraph.textContent = text; // 일반 텍스트 처리
-      listItem.appendChild(paragraph);
+  // 1. 초기화: 텍스트 추가 및 숨기기
+  function initializeTexts(){
+    aboutIntroList.innerHTML = ''; //기존 텍스트 제거
+
+    introTexts.forEach((text) => {
+      const listItem = document.createElement('li');
+
+      listItem.style.opacity = '0'; // 처음에 숨김
+
+      if(text.startsWith('<h2>')){
+        listItem.innerHTML = text; // HTML 태그 포함된 텍스트 처리
+      }
+      else{
+        const paragraph = document.createElement('p');
+
+        paragraph.textContent = text; // 일반 텍스트 처리
+        listItem.appendChild(paragraph);
+      }
+      aboutIntroList.appendChild(listItem); // ul에 li 추가
+    });
+  }
+  
+  // 2. 문장 출력
+  function showText(index){
+    const items = aboutIntroList.querySelectorAll('li');
+    if(currentTextIndex < items.length){
+      items[index].style.opacity = '1'; //문장 보이기
+      items[index].classList.remove('text-blur-out');
     }
-    aboutIntroList.appendChild(listItem); // ul에 li 추가
-  });
 
-  // 스크롤 잠금
-  function lockScroll() {
-    contentArea.style.overflow = 'hidden';
-    console.log('스크롤 잠금 활성화');
+    //문장이 모두 출력된 경우 스크롤 잠금 하제
+    if(index === introTexts.length - 1){
+      console.log('문장 출력 끝 스크롤 잠금 해제');
+      
+      unlockScroll();
+      contentArea.removeEventListener('wheel', handleWheel); //휠 이벤트 비활성화
+      isScrollingAllowed = true;
+    }
   }
 
-  // 스크롤 해제
+  // 3. 스크롤 잠금
+  function lockScroll() {
+    if(!isScrollUnlocked){
+      contentArea.style.overflow = 'hidden';
+      console.log('스크롤 잠금 활성화');
+    }
+  }
+
+  // 4. 스크롤 해제
   function unlockScroll() {
+    isScrollUnlocked = true;
     contentArea.style.overflow = 'auto';
     console.log('스크롤 잠금 해제');
   }
 
-  // 문장 출력 함수
-  function showText(index) {
-    const items = aboutIntroList.querySelectorAll('li');
-    if (index < items.length) {
-      items[index].style.opacity = '1'; // 문장 보이기
-      items[index].classList.remove('text-blur-out'); // 블러 제거
-    }
-  }
-
-  // 모든 문장 삭제 함수
-  function hideAllTexts() {
-    const items = aboutIntroList.querySelectorAll('li');
-    items.forEach((item) => {
-      item.classList.add('text-blur-out');
-      setTimeout(() => {
-        item.style.opacity = '0';
-      }, 1200);
-    });
-    // 모든 문장이 삭제된 후 스크롤 활성화
-    setTimeout(() => {
-      unlockScroll(); // 스크롤 락 해제
-      isScrollingAllowed = true; // 스크롤 가능 상태로 변경
-      allTextsHidden = true; // 모든 문장이 삭제되었음을 기록
-      contentArea.removeEventListener('wheel', handleWheel); // 휠 이벤트 제거
-      console.log('모든 문장 삭제 완료 및 스크롤 락 해제');
-    }, 1300);
-  }
-
-  // 모든 문장 복구 함수
-  function showAllTexts() {
-    const items = aboutIntroList.querySelectorAll('li');
-    items.forEach((item) => {
-      item.style.opacity = '1'; // 문장 복구
-      item.classList.remove('text-blur-out'); // 블러 제거
-    });
-    currentTextIndex = introTexts.length; // 문장을 출력 완료 상태로 변경
-    allTextsHidden = false; // 문장이 복구된 상태로 업데이트
-    console.log('모든 문장 복구 완료');
-  }
-
-  // 휠 이벤트 핸들러
+  // 5. 휠 이벤트 핸들러
   function handleWheel(event) {
     const scrollDirection = event.deltaY > 0 ? 'down' : 'up';
 
-    // 휠 아래로: 문장 출력
-    if (scrollDirection === 'down') {
-      if (currentTextIndex < introTexts.length) {
-        showText(currentTextIndex);
-        currentTextIndex++;
-      }
-      else if(currentTextIndex === introTexts.length){
-        extraScrollCount++;
-        console.log(`추가 스크롤 카운트: ${extraScrollCount}`);
-        if(extraScrollCount >= 1){
-          console.log(`모든 문장 삭제 및 스크롤 락 해제`);
-          hideAllTexts();
-        }
-      }
+    // Swiper 내부에서는 about-intro의 휠 이벤트 무시
+    if(event.target.closest('.swiper-container')){
+      return;
     }
 
+    // 휠 아래로: 문장 출력
+    if (scrollDirection === 'down') {
+      if(currentTextIndex < introTexts.length) {
+        showText(currentTextIndex); // 문장 출력
+        currentTextIndex++;
+      }
+    }
     // 휠 위로: 문장 삭제
     if (scrollDirection === 'up') {
-      if (allTextsHidden) {
-        // 모든 문장이 삭제된 상태라면 복구
-        showAllTexts();
-        lockScroll(); // 스크롤 락 다시 활성화
-        isScrollingAllowed = false;
-        contentArea.addEventListener('wheel', handleWheel, { passive: false }); // 휠 이벤트 재등록
-        // allTextsHidden = false;
-        console.log('문장 복구 및 스크롤 락 재적용');
-      } else if (currentTextIndex > 0) {
+      if (currentTextIndex > 0) {
         currentTextIndex--;
         const items = aboutIntroList.querySelectorAll('li');
         items[currentTextIndex].style.opacity = '0'; // 문장 숨김
@@ -330,21 +308,25 @@ function aboutIntroHandler() {
     }
   }
 
-  // About Intro 도달 시 스크롤 잠금
-  contentArea.addEventListener('scroll', () => {
+  // 6. about-intro section 안 스크롤 이벤트
+  contentArea.addEventListener('scroll', ()=>{
     const scrollY = contentArea.scrollTop;
     const aboutIntroOffset = aboutIntroSection.offsetTop;
-
+    
     console.log(`스크롤 Y 위치: ${scrollY}, About Intro Offset: ${aboutIntroOffset}`);
 
-    if (scrollY >= (aboutIntroOffset-60) && !isScrollingAllowed) {
+    if(scrollY >= (aboutIntroOffset-60) && !isScrollingAllowed && !isScrollUnlocked){
+      console.log('about-intro 섹션 도착');
       lockScroll();
       contentArea.addEventListener('wheel', handleWheel, { passive: false });
-    } else if (scrollY < (aboutIntroOffset - 60) && isScrollingAllowed) {
+    }
+    else if (scrollY < (aboutIntroOffset - 60) && isScrollingAllowed) {
+      console.log('about-intro 섹션 이전으로 돌아감');
       unlockScroll();
       contentArea.removeEventListener('wheel', handleWheel);
     }
   });
+  initializeTexts();
 }
 
 // skill tab
@@ -418,11 +400,10 @@ function horizontalScroll(){
 
   // 세로 스크롤을 가로 스크롤로 변환
   works.addEventListener('wheel', (event) => {
-    // 기본 동작 방지
-    event.preventDefault();
+  event.preventDefault(); // 기본 동작 방지
 
-    // deltaY 값을 가로 스크롤로 변환
-    worksWrapper.scrollLeft += event.deltaY * 1.5; // 스크롤 속도를 조금 더 빠르게 설정
+  // deltaY 값을 가로 스크롤로 변환
+  worksWrapper.scrollLeft += event.deltaY * 1.5; // 스크롤 속도를 조금 더 빠르게 설정
   });
 }
 
@@ -539,4 +520,12 @@ function bearStop(){
   });
 };
 
+//초기 로드
+contactWindowShow();
+loadIntro();
+loadAboutIntro();
+loadWorks();
+loadAbout();
+loadSkill();
+loadEpilogue();
 loadLoadingPage();
