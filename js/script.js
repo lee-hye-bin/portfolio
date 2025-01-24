@@ -1,6 +1,6 @@
 /* ################################# fetch #################################  */
 function loadLoadingPage(){
-  fetch('/include/loading.html')
+  fetch('./include/loading.html')
   .then(response => response.text())
   .then(data=>{
     document.querySelector('.loading-include').innerHTML = data;
@@ -13,7 +13,7 @@ function loadLoadingPage(){
 }
 
 function loadIntro(){
-  fetch('/include/intro.html')
+  fetch('./include/intro.html')
   .then(response => response.text())
   .then(data=>{
     document.querySelector('.intro-include').innerHTML = data;
@@ -23,7 +23,7 @@ function loadIntro(){
 }
 
 function loadAboutIntro(){
-  fetch('/include/about-intro.html')
+  fetch('./include/about-intro.html')
   .then(response => response.text())
   .then(data=>{
     document.querySelector('.about-intro-include').innerHTML = data;
@@ -35,7 +35,7 @@ function loadAboutIntro(){
 }
 
 function loadAbout(){
-  fetch('/include/about.html')
+  fetch('./include/about.html')
   .then(response => response.text())
   .then(data=>{
     document.querySelector('.about-include').innerHTML = data;
@@ -44,7 +44,7 @@ function loadAbout(){
 }
 
 function loadSkill(){
-  fetch('/include/skill.html')
+  fetch('./include/skill.html')
   .then(response => response.text())
   .then(data=>{
     document.querySelector('.skill-include').innerHTML = data;
@@ -56,7 +56,7 @@ function loadSkill(){
 }
 
 function loadWorks(){
-  fetch('/include/works.html')
+  fetch('./include/works.html')
   .then(response => response.text())
   .then(data=>{
     document.querySelector('.works-include').innerHTML = data;
@@ -80,7 +80,7 @@ function loadWorks(){
 }
 
 function loadEpilogue(){
-  fetch('/include/epilogue.html')
+  fetch('./include/epilogue.html')
   .then(response => response.text())
   .then(data=>{
     document.querySelector('.epilogue-include').innerHTML = data;
